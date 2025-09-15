@@ -1,7 +1,7 @@
 import { defineConfig } from 'orval';
 
 export default defineConfig({
-  stories: {
+  api: {
     input: './openapi.yaml',
     output: {
       mode: 'split',
@@ -13,24 +13,6 @@ export default defineConfig({
         mutator: {
           path: './src/lib/fetchApi.ts',
           name: 'customFetch',
-        },
-        operations: {
-          // React hooksは不要のためオフ
-          'Stories.getAllStories': {
-            mock: false,
-          },
-          'Stories.getStoryById': {
-            mock: false,
-          },
-          'Stories.createStory': {
-            mock: false,
-          },
-          'Stories.updateStory': {
-            mock: false,
-          },
-          'Stories.deleteStory': {
-            mock: false,
-          },
         },
       },
     },
