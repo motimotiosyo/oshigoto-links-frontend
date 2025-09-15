@@ -16,6 +16,5 @@ export default defineConfig({
         },
       },
     },
-    hooks: false, // React hooksは生成しない
   },
 });
