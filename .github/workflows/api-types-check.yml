@@ -1,0 +1,39 @@
+name: API Types Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout frontend
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    # TODO: バックエンドリポジトリの組織名とリポジトリ名を <ORG>/<BACKEND_REPO> に置換してください
+    # TODO: ブランチ名は適切なものに変更してください（main や develop など）
+    - name: Fetch OpenAPI spec from backend
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+             -H "Accept: application/vnd.github.v3.raw" \
+             -o openapi.yaml \
+             "https://api.github.com/repos/<ORG>/<BACKEND_REPO>/contents/docs/openapi.yaml?ref=main"
+    
+    - name: Generate API types and SDK
+      run: npm run generate:api
+    
+    - name: Type check
+      run: npm run typecheck
