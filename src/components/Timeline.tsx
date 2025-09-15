@@ -6,8 +6,8 @@ interface Experience {
   id: number;
   title: string;
   body: string;
-  tags: string[];
   created_at: string;
+  updated_at: string;
 }
 
 interface ApiResponse {
@@ -52,7 +52,7 @@ export default function Timeline({
           sort: '-created_at' // 新しい順
         });
         
-        const response = await fetch(`${baseUrl}/experiences?${params}`);
+        const response = await fetch(`${baseUrl}/experience_posts?${params}`);
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -98,13 +98,13 @@ export default function Timeline({
   }
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-6 py-8">
       {experiences.length === 0 ? (
         <div>まだ投稿がありません</div>
       ) : (
         <>
-          {/* PC：横3枚×縦10枚のグリッド */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          {/* PC：横最大3枚のグリッド */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {experiences.map(experience => (
               <ExperienceCard 
                 key={experience.id}
@@ -115,21 +115,31 @@ export default function Timeline({
 
           {/* ページネーション */}
           {pagination.total_pages > 1 && (
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center items-center space-x-4 py-8">
               <button
                 onClick={() => handlePageChange(pagination.current_page - 1)}
                 disabled={pagination.current_page <= 1}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  pagination.current_page <= 1
+                    ? 'bg-orange-200 text-orange-400 cursor-not-allowed'
+                    : 'bg-orange-600 text-white hover:bg-orange-700'
+                }`}
               >
                 前のページ
               </button>
               
-              <span>
+              <span className="text-amber-800 font-medium">
                 {pagination.current_page} / {pagination.total_pages}
               </span>
               
               <button
                 onClick={() => handlePageChange(pagination.current_page + 1)}
                 disabled={pagination.current_page >= pagination.total_pages}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  pagination.current_page >= pagination.total_pages
+                    ? 'bg-orange-200 text-orange-400 cursor-not-allowed'
+                    : 'bg-orange-600 text-white hover:bg-orange-700'
+                }`}
               >
                 次のページ
               </button>
