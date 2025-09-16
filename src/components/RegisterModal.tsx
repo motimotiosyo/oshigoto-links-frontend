@@ -9,14 +9,12 @@ interface RegisterModalProps {
 
 interface RegisterFormData {
   account_name: string;
-  email: string;
   password: string;
   password_confirmation: string;
 }
 
 interface ValidationErrors {
   account_name?: string;
-  email?: string;
   password?: string;
   password_confirmation?: string;
   general?: string;
@@ -26,7 +24,6 @@ export default function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
   const { login } = useAuth();
   const [formData, setFormData] = useState<RegisterFormData>({
     account_name: '',
-    email: '',
     password: '',
     password_confirmation: ''
   });
@@ -38,12 +35,6 @@ export default function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
 
     if (!formData.account_name.trim()) {
       newErrors.account_name = 'ユーザー名を入力してください';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'メールアドレスを入力してください';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = '有効なメールアドレスを入力してください';
     }
 
     if (!formData.password) {
@@ -72,14 +63,16 @@ export default function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
     setIsLoading(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1';
+      const requestBody = { user: formData };
+      console.log('Registration request URL:', `${baseUrl}/users`);
+      console.log('Registration request body:', JSON.stringify(requestBody, null, 2));
+      
       const response = await fetch(`${baseUrl}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user: formData
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -89,7 +82,13 @@ export default function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
         onClose();
         window.location.href = '/';
       } else {
-        setErrors({ general: data.message || 'ユーザー登録に失敗しました' });
+        console.error('Registration error response:', data);
+        console.error('Detailed errors:', data.errors);
+        let errorMessage = data.message || `ユーザー登録に失敗しました (${response.status})`;
+        if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+          errorMessage = data.errors.join(', ');
+        }
+        setErrors({ general: errorMessage });
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -110,7 +109,7 @@ export default function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 border border-orange-200">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-amber-900">新規登録</h2>
@@ -147,23 +146,6 @@ export default function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
             )}
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-amber-900 mb-1">
-              メールアドレス
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
-              disabled={isLoading}
-            />
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-amber-900 mb-1">
