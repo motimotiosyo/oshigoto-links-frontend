@@ -21,7 +21,7 @@ export default function ExperienceCard({ experience }: ExperienceCardProps) {
   };
 
   return (
-    <div className="bg-amber-25 border border-orange-200 p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300 h-48 flex flex-col justify-between">
+    <div className="bg-white border border-orange-200 p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300 h-48 flex flex-col justify-between">
       <h3 className="text-xl font-semibold text-amber-900 leading-relaxed overflow-hidden" 
           style={{
             display: '-webkit-box',
