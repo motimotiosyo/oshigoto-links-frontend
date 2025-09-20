@@ -1,0 +1,422 @@
+openapi: 3.0.3
+info:
+  title: Oshigoto Links API
+  description: あらゆる「おしごと」体験を共有するプラットフォーム API
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://github.com/motimotiosyo/oshigoto-links-backend
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.oshigoto-links.com/api/v1
+    description: Production server (未定)
+
+tags:
+  - name: ExperiencePosts
+    description: おしごと体験投稿の管理
+
+paths:
+  /experience_posts:
+    get:
+      operationId: listExperiencePosts
+      summary: おしごと体験投稿一覧取得
+      description: おしごと体験投稿一覧をページネーション付きで取得
+      tags:
+        - ExperiencePosts
+      # security:
+      #   - bearerAuth: []  # TODO: 認証実装後に有効化
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: 1ページあたりの件数
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          description: ソート順
+          required: false
+          schema:
+            type: string
+            default: "-created_at"
+            enum:
+              - "created_at"
+              - "-created_at"
+              - "updated_at"
+              - "-updated_at"
+              - "title"
+              - "-title"
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-Total-Count:
+              description: 総件数
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  experiences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Experience'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      operationId: createExperiencePost
+      summary: おしごと体験投稿作成
+      description: 新しいおしごと体験投稿を作成
+      tags:
+        - ExperiencePosts
+      # security:
+      #   - bearerAuth: []  # TODO: 認証実装後に有効化
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - story
+              properties:
+                experience:
+                  $ref: '#/components/schemas/ExperienceInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  experience:
+                    $ref: '#/components/schemas/Experience'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /experience_posts/{id}:
+    get:
+      operationId: getExperiencePost
+      summary: おしごと体験投稿詳細取得
+      description: 指定されたIDのおしごと体験投稿詳細を取得
+      tags:
+        - ExperiencePosts
+      # security:
+      #   - bearerAuth: []  # TODO: 認証実装後に有効化
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  experience:
+                    $ref: '#/components/schemas/Experience'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      operationId: updateExperiencePost
+      summary: おしごと体験投稿更新
+      description: 指定されたIDのおしごと体験投稿を更新
+      tags:
+        - ExperiencePosts
+      # security:
+      #   - bearerAuth: []  # TODO: 認証実装後に有効化
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - story
+              properties:
+                experience:
+                  $ref: '#/components/schemas/ExperienceInput'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  experience:
+                    $ref: '#/components/schemas/Experience'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      operationId: deleteExperiencePost
+      summary: おしごと体験投稿削除
+      description: 指定されたIDのおしごと体験投稿を削除
+      tags:
+        - ExperiencePosts
+      # security:
+      #   - bearerAuth: []  # TODO: 認証実装後に有効化
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token for authentication
+
+  schemas:
+    Experience:
+      type: object
+      required:
+        - id
+        - title
+        - body
+        - tags
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          description: おしごと体験投稿 ID
+          example: 1
+        title:
+          type: string
+          description: おしごと体験投稿のタイトル
+          maxLength: 120
+          example: "在宅ワークでの集中力向上方法"
+        body:
+          type: string
+          description: おしごと体験投稿の本文
+          example: "在宅ワークを始めてから集中力を保つのに苦労していましたが、ポモドーロテクニックを導入することで劇的に改善しました。"
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時 (ISO8601/UTC)
+          example: "2025-01-15T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時 (ISO8601/UTC)
+          example: "2025-01-15T10:00:00Z"
+
+    ExperienceInput:
+      type: object
+      required:
+        - title
+        - body
+      properties:
+        title:
+          type: string
+          description: おしごと体験投稿のタイトル
+          maxLength: 120
+          minLength: 1
+          example: "在宅ワークでの集中力向上方法"
+        body:
+          type: string
+          description: おしごと体験投稿の本文
+          minLength: 1
+          example: "在宅ワークを始めてから集中力を保つのに苦労していましたが、ポモドーロテクニックを導入することで劇的に改善しました。25分集中→5分休憩のサイクルで作業効率が向上し、疲労感も軽減されました。"
+
+    Pagination:
+      type: object
+      required:
+        - current_page
+        - total_pages
+        - total_count
+        - per_page
+      properties:
+        current_page:
+          type: integer
+          description: 現在のページ番号
+          minimum: 1
+          example: 1
+        total_pages:
+          type: integer
+          description: 総ページ数
+          minimum: 0
+          example: 5
+        total_count:
+          type: integer
+          description: 総件数
+          minimum: 0
+          example: 100
+        per_page:
+          type: integer
+          description: 1ページあたりの件数
+          minimum: 1
+          example: 20
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: エラーコード
+              enum:
+                - VALIDATION_ERROR
+                - NOT_FOUND
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - CONFLICT
+                - RATE_LIMITED
+                - INTERNAL
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: エラーメッセージ
+              example: "バリデーションエラーが発生しました"
+            details:
+              type: object
+              description: エラー詳細情報
+              additionalProperties: true
+              example:
+                title: ["は必須です"]
+                body: ["は1文字以上で入力してください"]
+            request_id:
+              type: string
+              description: リクエストID
+              example: "req_123456789"
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "リクエストが不正です"
+              request_id: "req_123456789"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "認証が必要です"
+              request_id: "req_123456789"
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "リソースが見つかりません"
+              request_id: "req_123456789"
+
+    UnprocessableEntity:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "バリデーションエラーが発生しました"
+              details:
+                title: ["は必須です"]
+                body: ["は1文字以上で入力してください"]
+              request_id: "req_123456789"
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "INTERNAL"
+              message: "サーバーエラーが発生しました"
+              request_id: "req_123456789"
